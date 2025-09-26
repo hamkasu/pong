@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Levels Online - Multiplayer Arcade Game</title>
+    <meta name="description" content="Play the ultimate online Pong game! 7 challenging levels, real-time multiplayer, user accounts, leaderboards, and retro arcade action!">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .menu {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 15px;
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            margin-bottom: 20px;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+        
+        .menu h1 {
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            margin-bottom: 30px;
+        }
+        
+        .menu h2 {
+            color: #00ddff;
+            margin-bottom: 20px;
+        }
+        
+        .menu button {
+            display: block;
+            width: 100%;
+            margin: 15px auto;
+            padding: 15px;
+            font-size: 16px;
+            background: #00ff88;
+            border: none;
+            border-radius: 5px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .menu button:hover {
+            background: #00cc6a;
+        }
+        
+        .menu button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .menu button.secondary {
+            background: #666;
+            color: white;
+        }
+        
+        .menu button.secondary:hover {
+            background: #777;
+        }
+        
+        .menu input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #444;
+            border-radius: 5px;
+            background: #2a2a3e;
+            color: white;
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
+        }
+        
+        .menu input:focus {
+            border-color: #00ff88;
+            outline: none;
+        }
+        
+        .error-message {
+            color: #ff4444;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            color: #44ff44;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid #00ff88;
+            font-size: 14px;
+        }
+        
+        .music-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .music-toggle:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ffaa00;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.3);
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .leaderboard h2 {
+            color: #ffaa00;
+            text-shadow: 0 0 10px #ffaa00;
+            margin-bottom: 20px;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        
+        .leaderboard-table th {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .leaderboard-table tr:nth-child(1) td:first-child:before {
+            content: "🥇 ";
+        }
+        
+        .leaderboard-table tr:nth-child(2) td:first-child:before {
+            content: "🥈 ";
+        }
+        
+        .leaderboard-table tr:nth-child(3) td:first-child:before {
+            content: "🥉 ";
+        }
+        
+        .game-mode {
+            font-size: 14px;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        canvas {
+            border: 3px solid #00ff88;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .controls {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .score {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff88;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #00ff88;
+            text-align: center;
+            display: none;
+            min-width: 300px;
+        }
+        
+        button {
+            background: #00ff88;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        button:hover {
+            background: #00cc6a;
+        }
+        
+        .lobby {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #00ddff;
+            box-shadow: 0 0 30px rgba(0, 221, 255, 0.3);
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        
+        .lobby h2 {
+            color: #00ddff;
+            text-shadow: 0 0 10px #00ddff;
+        }
+        
+        .status-message {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .status-searching {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .status-found {
+            background: rgba(68, 255, 68, 0.2);
+            border: 1px solid #44ff44;
+            color: #44ff44;
+        }
+        
+        .connection-status {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: 1px solid;
+        }
+        
+        .connection-status.connected {
+            background: rgba(68, 255, 68, 0.2);
+            border-color: #44ff44;
+            color: #44ff44;
+        }
+        
+        .connection-status.disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00ff88;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div>👤 <span id="usernameDisplay"></span></div>
+            <div>🏆 <span id="userScore">0</span></div>
+        </div>
+        
+        <button class="music-toggle" id="musicToggle" onclick="toggleMusic()" title="Toggle Music">🎵</button>
+        
+        <div class="connection-status disconnected" id="connectionStatus">
+            🔴 Connecting...
+        </div>
+
+        <!-- Login/Register Screen -->
+        <div class="screen active" id="authScreen">
+            <div class="menu">
+                <h1>🏓 PONG LEVELS ONLINE 🏓</h1>
+                
+                <div id="loginForm">
+                    <h2>Login</h2>
+                    <input type="text" id="loginUsername" placeholder="Username or Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button onclick="login()">Login</button>
+                    <button class="secondary" onclick="showRegister()">Create Account</button>
+                </div>
+                
+                <div id="registerForm" style="display: none;">
+                    <h2>Create Account</h2>
+                    <input type="text" id="registerUsername" placeholder="Username" required>
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" required>
+                    <button onclick="register()">Create Account</button>
+                    <button class="secondary" onclick="showLogin()">Back to Login</button>
+                </div>
+                
+                <div id="authMessage"></div>
+            </div>
+        </div>
+
+        <!-- Main Menu Screen -->
+        <div class="screen" id="mainMenuScreen">
+            <div class="menu">
+                <h1>🏓 PONG LEVELS ONLINE 🏓</h1>
+                <button onclick="showGameModes()">🎮 Play Game</button>
+                <button onclick="showLeaderboard()">🏆 Leaderboard</button>
+                <button onclick="showProfile()">👤 Profile</button>
+                <button class="secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Game Mode Selection -->
+        <div class="screen" id="gameModeScreen">
+            <div class="menu">
+                <h2>Select Game Mode</h2>
+                <button onclick="startGame('singleplayer')">🤖 Single Player vs AI</button>
+                <button onclick="startGame('local')">👥 Local Multiplayer</button>
+                <button onclick="findOnlineMatch()">🌐 Online Multiplayer</button>
+                <button class="secondary" onclick="showMainMenu()">← Back</button>
+                <div style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+                    Single Player: Progress through 7 challenging levels<br>
+                    Local: Play against a friend on same device<br>
+                    Online: Play against opponents worldwide
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Lobby -->
+        <div class="screen" id="lobbyScreen">
+            <div class="lobby">
+                <h2>🌐 Online Multiplayer</h2>
+                <div id="lobbyStatus" class="status-message">
+                    Ready to find a match
+                </div>
+                <button id="findMatchBtn" onclick="findOnlineMatch()">Find Match</button>
+                <button id="cancelMatchBtn" onclick="cancelSearch()" style="display: none;">Cancel Search</button>
+                <button class="secondary" onclick="showGameModes()">← Back</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div class="screen" id="leaderboardScreen">
+            <div class="leaderboard">
+                <h2>🏆 Top Players</h2>
+                <table class="leaderboard-table" id="leaderboardTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Games</th>
+                            <th>Win Rate</th>
+                            <th>Level</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr><td colspan="6">Loading...</td></tr>
+                    </tbody>
+                </table>
+                <button class="secondary" onclick="showMainMenu()" style="margin-top: 20px;">← Back</button>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div class="screen" id="profileScreen">
+            <div class="menu">
+                <h2>👤 Your Profile</h2>
+                <div id="profileInfo">
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileScore">0</div>
+                            <div class="stat-label">Total Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileGames">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileWins">0</div>
+                            <div class="stat-label">Games Won</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileLevel">1</div>
+                            <div class="stat-label">Highest Level</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; font-size: 14px; opacity: 0.7;">
+                        Win Rate: <span id="profileWinRate">0%</span><br>
+                        Member since: <span id="profileJoinDate">-</span>
+                    </div>
+                </div>
+                <button class="secondary" onclick="showMainMenu()" style="margin-top: 20px;">← Back</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="gameScreen">
+            <div class="game-mode" id="gameModeDisplay"></div>
+            <div class="score" id="score">Level 1: Warm Up | Player: 0 | AI: 0</div>
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+            <div class="controls" id="controls">
+                Use W/S or Arrow Keys | Press SPACE to pause<br>
+                <small>Sound effects and music enabled</small>
+            </div>
+            
+            <div class="game-over" id="gameOver">
+                <h2 id="gameOverText"></h2>
+                <button onclick="handleGameOverButton()">Play Again</button>
+                <button onclick="backToMenu()" style="background: #666;">Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        // Global variables
+        let socket;
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let currentScreen = 'authScreen';
+        let currentGameMode = null;
+        let onlineGameState = null;
+        let isPlayer1 = false;
+
+        // Initialize socket connection
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+                if (authToken) {
+                    socket.emit('authenticate', authToken);
+                }
+            });
+            
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+            });
+            
+            socket.on('authenticated', (data) => {
+                console.log('Socket authenticated:', data);
+            });
+            
+            socket.on('auth_error', () => {
+                console.log('Socket auth error');
+                logout();
+            });
+            
+            // Matchmaking events
+            socket.on('searching', (data) => {
+                updateLobbyStatus('Searching for opponent...', 'searching');
+                document.getElementById('findMatchBtn').style.display = 'none';
+                document.getElementById('cancelMatchBtn').style.display = 'block';
+            });
+            
+            socket.on('match_found', (data) => {
+                onlineGameState = data;
+                isPlayer1 = (data.yourPlayerId === data.player1.id);
+                updateLobbyStatus(`Match found! Playing vs ${isPlayer1 ? data.player2.username : data.player1.username}`, 'found');
+                setTimeout(() => startOnlineGame(), 2000);
+            });
+            
+            socket.on('search_cancelled', () => {
+                updateLobbyStatus('Search cancelled', '');
+                document.getElementById('findMatchBtn').style.display = 'block';
+                document.getElementById('cancelMatchBtn').style.display = 'none';
+            });
+            
+            // Game events
+            socket.on('opponent_paddle_move', (data) => {
+                if (currentGameMode === 'online' && game.started) {
+                    if (isPlayer1) {
+                        aiPaddle.y = data.y;
+                    } else {
+                        playerPaddle.y = data.y;
+                    }
+                }
+            });
+            
+            socket.on('ball_sync', (data) => {
+                if (currentGameMode === 'online' && game.started && !isPlayer1) {
+                    ball.x = data.x;
+                    ball.y = data.y;
+                    ball.speedX = data.speedX;
+                    ball.speedY = data.speedY;
+                }
+            });
+            
+            socket.on('score_sync', (data) => {
+                if (currentGameMode === 'online' && game.started) {
+                    game.playerScore = data.player1Score;
+                    game.aiScore = data.player2Score;
+                }
+            });
+            
+            socket.on('game_finished', (data) => {
+                if (currentGameMode === 'online') {
+                    const won = (data.winner === currentUser.id);
+                    const finalScore = isPlayer1 ? data.finalScore.player1 : data.finalScore.player2;
+                    
+                    // Save result
+                    saveGameResult('online', 1, finalScore, won, data.winner === currentUser.id ? null : data.winner, data.duration);
+                    
+                    // Show game over
+                    gameOverText.innerHTML = won ? '🎉 Victory! 🎉' : '😔 Defeat';
+                    document.getElementById('gameOver').style.display = 'block';
+                    game.gameOver = true;
+                    playVictoryMusic();
+                }
+            });
+            
+            socket.on('opponent_disconnected', () => {
+                if (currentGameMode === 'online') {
+                    gameOverText.innerHTML = 'Opponent disconnected<br><small>You win!</small>';
+                    document.getElementById('gameOver').style.display = 'block';
+                    game.gameOver = true;
+                }
+            });
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateLobbyStatus(message, type) {
+            const statusEl = document.getElementById('lobbyStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'status-message';
+            if (type) statusEl.classList.add(`status-${type}`);
+        }
+
+        // API calls
+        async function apiCall(endpoint, method = 'GET', data = null, requireAuth = false) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            if (requireAuth && authToken) {
+                options.headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(`/api${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Request failed');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        // Authentication functions
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            clearAuthMessage();
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            clearAuthMessage();
+        }
+
+        function showAuthMessage(message, isError = false) {
+            const authMessage = document.getElementById('authMessage');
+            authMessage.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+        }
+
+        function clearAuthMessage() {
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showAuthMessage('Please fill in all fields', true);
+                return;
+            }
+
+            try {
+                const result = await apiCall('/login', 'POST', { username, password });
+                
+                authToken = result.token;
+                currentUser = result.user;
+                localStorage.setItem('authToken', authToken);
+                
+                // Authenticate socket
+                if (socket) {
+                    socket.emit('authenticate', authToken);
+                }
+                
+                showMainMenu();
+                updateUserInfo();
+                
+            } catch (error) {
+                showAuthMessage(error.message, true);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (!username || !email || !password) {
+                showAuthMessage('Please fill in all fields', true);
+                return;
+            }
+
+            try {
+                const result = await apiCall('/register', 'POST', { username, email, password });
+                
+                authToken = result.token;
+                currentUser = result.user;
+                localStorage.setItem('authToken', authToken);
+                
+                // Authenticate socket
+                if (socket) {
+                    socket.emit('authenticate', authToken);
+                }
+                
+                showMainMenu();
+                updateUserInfo();
+                
+            } catch (error) {
+                showAuthMessage(error.message, true);
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            showScreen('authScreen');
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        function updateUserInfo() {
+            if (currentUser) {
+                document.getElementById('usernameDisplay').textContent = currentUser.username;
+                document.getElementById('userScore').textContent = currentUser.total_score || 0;
+                document.getElementById('userInfo').style.display = 'block';
+            }
+        }
+
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+        }
+
+        function showMainMenu() {
+            showScreen('mainMenuScreen');
+        }
+
+        function showGameModes() {
+            showScreen('gameModeScreen');
+        }
+
+        async function showLeaderboard() {
+            showScreen('leaderboardScreen');
+            
+            try {
+                const result = await apiCall('/leaderboard');
+                displayLeaderboard(result.leaderboard);
+            } catch (error) {
+                console.error('Failed to load leaderboard:', error);
+                document.getElementById('leaderboardBody').innerHTML = 
+                    '<tr><td colspan="6">Failed to load leaderboard</td></tr>';
+            }
+        }
+
+        function displayLeaderboard(data) {
+            const tbody = document.getElementById('leaderboardBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No players yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map((player, index) => {
+                const winRate = player.games_played > 0 ? 
+                    Math.round((player.games_won / player.games_played) * 100) : 0;
+                
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${player.username}</td>
+                        <td>${player.total_score}</td>
+                        <td>${player.games_played}</td>
+                        <td>${winRate}%</td>
+                        <td>${player.highest_level}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function showProfile() {
+            showScreen('profileScreen');
+            
+            try {
+                const result = await apiCall('/profile', 'GET', null, true);
+                displayProfile(result.user);
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        function displayProfile(user) {
+            document.getElementById('profileScore').textContent = user.total_score;
+            document.getElementById('profileGames').textContent = user.games_played;
+            document.getElementById('profileWins').textContent = user.games_won;
+            document.getElementById('profileLevel').textContent = user.highest_level;
+            
+            const winRate = user.games_played > 0 ? 
+                Math.round((user.games_won / user.games_played) * 100) : 0;
+            document.getElementById('profileWinRate').textContent = `${winRate}%`;
+            
+            const joinDate = new Date(user.created_at).toLocaleDateString();
+            document.getElementById('profileJoinDate').textContent = joinDate;
+        }
+
+        // Online multiplayer functions
+        function findOnlineMatch() {
+            if (currentScreen !== 'lobbyScreen') {
+                showScreen('lobbyScreen');
+                return;
+            }
+            
+            socket.emit('find_match');
+        }
+
+        function cancelSearch() {
+            socket.emit('cancel_search');
+        }
+
+        function startOnlineGame() {
+            currentGameMode = 'online';
+            showScreen('gameScreen');
+            resetGame();
+            
+            // Update UI for online game
+            document.getElementById('gameModeDisplay').textContent = 
+                `ONLINE MULTIPLAYER vs ${isPlayer1 ? onlineGameState.player2.username : onlineGameState.player1.username}`;
+            document.getElementById('controls').innerHTML = 
+                'Use W/S keys to move your paddle | Press SPACE to pause<br><small>Playing online multiplayer</small>';
+            
+            // Start game music
+            if (audioContext) {
+                playGameMusic(1);
+            }
+        }
+
+        async function saveGameResult(gameMode, level, score, won, opponentId, duration) {
+            try {
+                await apiCall('/game/result', 'POST', {
+                    gameMode,
+                    level,
+                    score,
+                    won,
+                    opponentId,
+                    duration
+                }, true);
+                
+                // Update user info
+                if (currentUser) {
+                    currentUser.total_score = (currentUser.total_score || 0) + score;
+                    updateUserInfo();
+                }
+            } catch (error) {
+                console.error('Failed to save game result:', error);
+            }
+        }
+
+        // Initialize app
+        async function init() {
+            // Initialize socket
+            initSocket();
+            
+            // Check if user is already logged in
+            if (authToken) {
+                try {
+                    const result = await apiCall('/profile', 'GET', null, true);
+                    currentUser = result.user;
+                    showMainMenu();
+                    updateUserInfo();
+                } catch (error) {
+                    // Token is invalid, remove it
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    showScreen('authScreen');
+                }
+            } else {
+                showScreen('authScreen');
+            }
+        }
+
+        // Call init when page loads
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Basic game variables and functions (simplified for this example)
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioContext;
+        let currentMusic = null;
+        let musicMuted = false;
+
+        const game = {
+            mode: null,
+            playerScore: 0,
+            aiScore: 0,
+            paused: false,
+            gameOver: false,
+            started: false
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speedX: 4,
+            speedY: 3
+        };
+
+        const playerPaddle = {
+            x: 20,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 80,
+            speed: 8
+        };
+
+        const aiPaddle = {
+            x: canvas.width - 30,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 80,
+            speed: 8
+        };
+
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function toggleMusic() {
+            musicMuted = !musicMuted;
+            document.getElementById('musicToggle').textContent = musicMuted ? '🔇' : '🎵';
+        }
+
+        function playGameMusic() {
+            // Simplified music function
+        }
+
+        function playVictoryMusic() {
+            // Simplified victory music function  
+        }
+
+        function startGame(mode) {
+            currentGameMode = mode;
+            game.mode = mode;
+            game.started = true;
+            showScreen('gameScreen');
+            resetGame();
+        }
+
+        function resetGame() {
+            game.playerScore = 0;
+            game.aiScore = 0;
+            game.gameOver = false;
+            game.paused = false;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            document.getElementById('gameOver').style.display = 'none';
+        }
+
+        function backToMenu() {
+            game.started = false;
+            showGameModes();
+        }
+
+        function handleGameOverButton() {
+            resetGame();
+        }
+
+        // Simple game loop (you would expand this with full Pong logic)
+        function gameLoop() {
+            if (game.started && currentScreen === 'gameScreen' && !game.paused && !game.gameOver) {
+                // Update game logic here
+                if (keys['w'] && currentGameMode !== 'online') {
+                    playerPaddle.y = Math.max(0, playerPaddle.y - playerPaddle.speed);
+                } else if (keys['w'] && currentGameMode === 'online') {
+                    playerPaddle.y = Math.max(0, playerPaddle.y - playerPaddle.speed);
+                    // Send paddle update
+                    if (socket) {
+                        socket.emit('game_update', {
+                            gameId: onlineGameState?.gameId,
+                            type: 'paddle_move',
+                            payload: { y: playerPaddle.y }
+                        });
+                    }
+                }
+                
+                if (keys['s'] && currentGameMode !== 'online') {
+                    playerPaddle.y = Math.min(canvas.height - playerPaddle.height, playerPaddle.y + playerPaddle.speed);
+                } else if (keys['s'] && currentGameMode === 'online') {
+                    playerPaddle.y = Math.min(canvas.height - playerPaddle.height, playerPaddle.y + playerPaddle.speed);
+                    // Send paddle update
+                    if (socket) {
+                        socket.emit('game_update', {
+                            gameId: onlineGameState?.gameId,
+                            type: 'paddle_move',
+                            payload: { y: playerPaddle.y }
+                        });
+                    }
+                }
+                
+                // Simple ball movement
+                ball.x += ball.speedX;
+                ball.y += ball.speedY;
+                
+                // Ball collision with walls
+                if (ball.y <= ball.radius || ball.y >= canvas.height - ball.radius) {
+                    ball.speedY = -ball.speedY;
+                }
+                
+                // Ball collision with paddles (simplified)
+                if (ball.x <= playerPaddle.x + playerPaddle.width + ball.radius &&
+                    ball.y >= playerPaddle.y && ball.y <= playerPaddle.y + playerPaddle.height) {
+                    ball.speedX = Math.abs(ball.speedX);
+                }
+                
+                if (ball.x >= aiPaddle.x - ball.radius &&
+                    ball.y >= aiPaddle.y && ball.y <= aiPaddle.y + aiPaddle.height) {
+                    ball.speedX = -Math.abs(ball.speedX);
+                }
+                
+                // Scoring
+                if (ball.x < 0) {
+                    game.aiScore++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                } else if (ball.x > canvas.width) {
+                    game.playerScore++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                }
+                
+                // Check for game end
+                if (game.playerScore >= 7 || game.aiScore >= 7) {
+                    game.gameOver = true;
+                    document.getElementById('gameOverText').textContent = 
+                        game.playerScore >= 7 ? 'You Win!' : 'You Lose!';
+                    document.getElementById('gameOver').style.display = 'block';
+                }
+            }
+            
+            // Draw everything
+            if (game.started && currentScreen === 'gameScreen') {
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+                ctx.fillRect(aiPaddle.x, aiPaddle.y, aiPaddle.width, aiPaddle.height);
+                
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Update score
+                document.getElementById('score').textContent = 
+                    `${currentGameMode.toUpperCase()} | Player: ${game.playerScore}/7 | AI: ${game.aiScore}/7`;
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
