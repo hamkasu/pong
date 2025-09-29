@@ -63,7 +63,6 @@ pong-game/
 ├── requirements.txt       # Python dependencies
 ├── Procfile              # Railway start command
 ├── railway.toml          # Railway configuration
-├── nixpacks.toml         # Build configuration
 ├── .python-version       # Python 3.11
 ├── static/
 │   ├── css/
@@ -122,10 +121,11 @@ Railway automatically sets the `PORT` variable. No additional configuration need
 
 The project includes:
 - `railway.toml` - Railway deployment settings
-- `nixpacks.toml` - Nixpacks build configuration  
 - `.python-version` - Python version (3.11)
 - `Procfile` - Process startup command
 - `requirements.txt` - Python dependencies
+
+Railway's nixpacks will auto-detect Python and install dependencies automatically.
 
 ## 🔒 Health Monitoring
 
@@ -139,12 +139,42 @@ The `/health` endpoint provides status information for monitoring:
 
 ## 🐛 Troubleshooting
 
+### "pip: command not found" Error
+If you see this during build, Railway's auto-detection should fix it. Try:
+
+**Quick Fix:**
+```bash
+# Delete the pong-game folder completely
+rm -rf pong-game
+
+# Re-run the provisioner  
+python provision_pong.py
+
+# Navigate and deploy
+cd pong-game
+railway up
+```
+
+**Alternative Fix - Add nixpacks.toml manually:**
+Create `nixpacks.toml` in your project root:
+```toml
+[phases.setup]
+nixPkgs = ["python311", "python311Packages.pip"]
+
+[phases.install]
+cmds = ["python -m pip install --upgrade pip", "python -m pip install -r requirements.txt"]
+
+[start]
+cmd = "gunicorn server:app --bind 0.0.0.0:$PORT --workers 4"
+```
+
+Then redeploy: `railway up`
+
 ### "Error creating build plan with Railpack"
 This error means Railway couldn't detect the build configuration. Fix:
 ```bash
 # Make sure these files exist:
 # - railway.toml
-# - nixpacks.toml  
 # - .python-version
 # - requirements.txt
 # - Procfile
@@ -156,8 +186,9 @@ railway up --detach
 ### Build Fails
 - Ensure Python 3.11 is specified in `.python-version`
 - Check all dependencies are in `requirements.txt`
-- Verify `railway.toml` and `nixpacks.toml` exist
+- Verify `railway.toml` exists
 - Try: `railway logs` to see detailed errors
+- Let Railway auto-detect (simpler is better!)
 
 ### App Crashes
 - Check Railway logs: `railway logs`
