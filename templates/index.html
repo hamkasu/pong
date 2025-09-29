@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game - Single & Multiplayer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        
+        <div class="audio-controls">
+            <button id="musicBtn" class="audio-btn" onclick="toggleMusic()">♪ Music</button>
+            <button id="sfxBtn" class="audio-btn" onclick="toggleSFX()">♫ SFX</button>
+        </div>
+        
+        <div id="mainMenu" class="menu">
+            <h1>🏓 PONG</h1>
+            <button onclick="startGame('single')">Single Player vs AI</button>
+            <button onclick="startGame('multi')">Multiplayer (Local)</button>
+            <button onclick="showLeaderboard()">Leaderboard</button>
+        </div>
+
+        <div id="gameOverScreen" class="game-over hidden">
+            <div class="winner-text" id="winnerText"></div>
+            <div id="finalScore"></div>
+            <div class="name-input">
+                <input type="text" id="playerName" placeholder="Enter your name for leaderboard" maxlength="15">
+            </div>
+            <button onclick="saveScore()">Save Score & Continue</button>
+            <button onclick="showMainMenu()">Main Menu</button>
+        </div>
+
+        <div id="leaderboardScreen" class="leaderboard hidden">
+            <h2>🏆 Leaderboard</h2>
+            <div id="leaderboardList"></div>
+            <br>
+            <button onclick="showMainMenu()">Back to Main Menu</button>
+        </div>
+
+        <div id="hud" class="hud hidden">
+            <span id="player1Score">0</span> - <span id="player2Score">0</span>
+            <div style="font-size: 0.7em; margin-top: 5px;" id="gameMode"></div>
+        </div>
+
+        <div id="controls" class="controls hidden">
+            <div id="controlsText"></div>
+            <div style="margin-top: 10px; font-size: 0.8em;">Press ESC to pause • First to 7 points wins!</div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>
