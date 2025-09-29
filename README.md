@@ -62,8 +62,9 @@ pong-game/
 ├── server.py              # Flask server
 ├── requirements.txt       # Python dependencies
 ├── Procfile              # Railway start command
-├── railway.json          # Railway configuration
-├── runtime.txt           # Python version
+├── railway.toml          # Railway configuration
+├── nixpacks.toml         # Build configuration
+├── .python-version       # Python 3.11
 ├── static/
 │   ├── css/
 │   │   └── style.css     # Game styling
@@ -120,10 +121,11 @@ Railway automatically sets the `PORT` variable. No additional configuration need
 ## 📝 Railway Configuration
 
 The project includes:
-- `railway.json` - Railway build/deploy settings
+- `railway.toml` - Railway deployment settings
+- `nixpacks.toml` - Nixpacks build configuration  
+- `.python-version` - Python version (3.11)
 - `Procfile` - Process startup command
 - `requirements.txt` - Python dependencies
-- `runtime.txt` - Python version specification
 
 ## 🔒 Health Monitoring
 
@@ -137,14 +139,30 @@ The `/health` endpoint provides status information for monitoring:
 
 ## 🐛 Troubleshooting
 
+### "Error creating build plan with Railpack"
+This error means Railway couldn't detect the build configuration. Fix:
+```bash
+# Make sure these files exist:
+# - railway.toml
+# - nixpacks.toml  
+# - .python-version
+# - requirements.txt
+# - Procfile
+
+# Redeploy
+railway up --detach
+```
+
 ### Build Fails
-- Ensure Python 3.11+ is specified in `runtime.txt`
+- Ensure Python 3.11 is specified in `.python-version`
 - Check all dependencies are in `requirements.txt`
+- Verify `railway.toml` and `nixpacks.toml` exist
+- Try: `railway logs` to see detailed errors
 
 ### App Crashes
 - Check Railway logs: `railway logs`
-- Verify PORT environment variable is set
-- Ensure gunicorn is properly configured
+- Verify PORT environment variable binding in start command
+- Ensure gunicorn is in requirements.txt
 
 ### Audio Not Working
 - Click anywhere on the page to activate audio
